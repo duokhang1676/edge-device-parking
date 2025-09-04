@@ -62,9 +62,9 @@ registered_vehicles = [{
 CLOUD_NAME = "dcs6zqppp"
 UPLOAD_PRESET = "parking-data"
 
-TRACKING_CAMERA_ID = 0
-QR_CAMERA_ID = 1
-LICENSE_CAMERA_ID = 2
+TRACKING_CAMERA_ID = "/dev/video0"
+QR_CAMERA_ID = "/dev/video1"
+LICENSE_CAMERA_ID = "/dev/video2"
 #
 
 def get_coordinates(parking_id, camera_id):
@@ -128,13 +128,21 @@ def tracking_car():
     coordinates_data = read_yaml("resources/coordinates/data/coordinates_"+str(0)+'.yml')
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Đang chạy trên: {device}")
-    model = YOLO("resources/models/yolov8s-416.pt")
+    model = YOLO("resources/models/yolov8n-416.engine")
     # model = YOLO("resources/models/detect-car-yolov8n-v2.pt")
     # Set log level to ERROR
     model.overrides['verbose'] = False
     tracker = Sort(max_age=100, iou_threshold=0.1, min_hits = 5)
     #cap = cv2.VideoCapture("test_data/video/4.mp4")
-    cap = cv2.VideoCapture(TRACKING_CAMERA_ID)
+    gst_pipeline = (
+            "nvarguscamerasrc ! "
+            "video/x-raw(memory:NVMM), width=416, height=416, framerate=30/1 ! "
+            "nvvidconv ! "
+            "video/x-raw, format=BGRx ! "
+            "videoconvert ! "
+            "video/x-raw, format=BGR ! appsink"
+        )
+    cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
     time.sleep(1)
     ret, frame = cap.read()
 
@@ -339,9 +347,9 @@ def tracking_car():
         draw_points_and_ids(frame, coordinates_data, hidden_ids, track_ids, detected_boxes, track_licenses, fps, hidden_ids_map_track_licenses)
        
         # Hiển thị
-        cv2.imshow("Tracking camera", frame)
-        if cv2.waitKey(1) == ord('q'):
-            break
+        # cv2.imshow("Tracking camera", frame)
+        # if cv2.waitKey(1) == ord('q'):
+        #     break
         ###########
 
 
@@ -376,7 +384,7 @@ def find_min_slots(a):
 # Giao tiếp serial với micro controller
 def connect_sensor():
    # Thiết lập cổng Serial (kiểm tra cổng COM trong Device Manager)
-    port = "COM8"  
+    port = "/dev/ttyUSB0"  
     baudrate = 9600
     global car_in, car_out, id_code_in, id_code_out, license_car_in, license_car_out, new_car, customer_type, parked_vehicles, parking_id, registered_vehicles, update_coordinate_arduino, direction, slot_table, qr_thread, license_thread
     # Thiết lập cổng Serial (kiểm tra cổng COM trong Device Manager)
@@ -621,7 +629,7 @@ def connect_sensor():
 # Detect QR
 def detect_QR():
     global car_in, car_out, id_code_in, id_code_out, customer_type, qr_thread
-    cap = cv2.VideoCapture(QR_CAMERA_ID, cv2.CAP_MSMF)
+    cap = cv2.VideoCapture(QR_CAMERA_ID)
     # Khởi tạo QRCodeDetector
     qr_decoder = cv2.QRCodeDetector()
     while True:
@@ -634,9 +642,9 @@ def detect_QR():
                 print("Camera QR lỗi!")
                 continue
             # Giải mã mã QR
-            cv2.imshow("Detect QR Camera",frame)
-            if cv2.waitKey(1) == ord('q'):
-                break
+            # cv2.imshow("Detect QR Camera",frame)
+            # if cv2.waitKey(1) == ord('q'):
+            #     break
             qr_code, points, _ = qr_decoder.detectAndDecode(frame)
             if points is not None:
                 if qr_code:
@@ -682,9 +690,9 @@ def detect_license():
             if frame is None:
                 continue
             print("detect license")
-            cv2.imshow("Detect License Camera", frame)
-            if cv2.waitKey(1) == ord('q'):
-                break
+            # cv2.imshow("Detect License Camera", frame)
+            # if cv2.waitKey(1) == ord('q'):
+            #     break
             # Sử dụng mô hình YOLO để phát hiện biển số xe trong khung hình
             plates = yolo_LP_detect(frame, size=640)
             # Lấy danh sách các biển số xe được phát hiện (tọa độ bounding box)
