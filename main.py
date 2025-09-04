@@ -224,7 +224,7 @@ def tracking_car():
 
         # Danh sách các tọa độ và id của xe đã track được
         detected_boxes, track_ids = tracking_objects(tracker, model, frame, confidence_threshold = 0.6, device=device)
-
+        print(track_ids)
 # xe đi vào
         if len(track_ids) != 0:
             # Phát hiện xe mới vào
@@ -353,8 +353,8 @@ def tracking_car():
         ###########
 
 
-    cap.release()
-    cv2.destroyAllWindows()
+    # cap.release()
+    # cv2.destroyAllWindows()
 
 def count_groups(a):
     group_counts = {'A': 0, 'B': 0, 'C': 0, 'D': 0}
@@ -636,7 +636,6 @@ def detect_QR():
         #time.sleep(0.1)
         # Nếu xe vào hoặc ra và chưa có mã QR
         if (car_in and id_code_in == "") or (car_out and id_code_out == ""):
-            print("detect QR")
             ret, frame = cap.read()
             if frame is None:
                 print("Camera QR lỗi!")
@@ -645,9 +644,11 @@ def detect_QR():
             # cv2.imshow("Detect QR Camera",frame)
             # if cv2.waitKey(1) == ord('q'):
             #     break
+            print("detect QR")
             qr_code, points, _ = qr_decoder.detectAndDecode(frame)
             if points is not None:
                 if qr_code:
+                    print("detected qr")
                     if car_in:
                         id_code_in = qr_code
                         customer_type = "customer"
@@ -655,12 +656,12 @@ def detect_QR():
                         id_code_out = qr_code
                     print(qr_code)
                     threading.Thread(target=play_sound, args=(mp3_url+'scan.mp3',)).start()
-                    cv2.destroyWindow("Detect QR Camera")
+                    # cv2.destroyWindow("Detect QR Camera")
                     cap.release()
                     qr_thread = True
                     break
         else:
-            cv2.destroyWindow("Detect QR Camera")
+            # cv2.destroyWindow("Detect QR Camera")
             cap.release()
             qr_thread = True
             break
@@ -688,6 +689,7 @@ def detect_license():
         if (car_in and license_car_in == "") or (car_out and license_car_out == ""):
             ret, frame = cap.read()
             if frame is None:
+                print("license frame is none!")
                 continue
             print("detect license")
             # cv2.imshow("Detect License Camera", frame)
@@ -729,12 +731,12 @@ def detect_license():
                         license_car_out = lp_temp
                     print(lp_temp)
                     threading.Thread(target=play_sound, args=('resources/mp3/scan.mp3',)).start()
-                    cv2.destroyWindow("Detect License Camera")
+                    # cv2.destroyWindow("Detect License Camera")
                     cap.release()
                     license_thread = True
                     break
         else:
-            cv2.destroyWindow("Detect License Camera")
+            # cv2.destroyWindow("Detect License Camera")
             cap.release()
             license_thread = True
             break
