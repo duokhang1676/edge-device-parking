@@ -1,0 +1,80 @@
+- coordinate:
+  - 123
+  - 89
+  id: A0
+- coordinate:
+  - 110
+  - 145
+  id: A1
+- coordinate:
+  - 96
+  - 207
+  id: A2
+- coordinate:
+  - 81
+  - 272
+  id: A3
+- coordinate:
+  - 62
+  - 362
+  id: A4
+- coordinate:
+  - 273
+  - 92
+  id: B0
+- coordinate:
+  - 269
+  - 147
+  id: B1
+- coordinate:
+  - 266
+  - 202
+  id: B2
+- coordinate:
+  - 257
+  - 280
+  id: B3
+- coordinate:
+  - 252
+  - 362
+  id: B4
+- coordinate:
+  - 349
+  - 88
+  id: C0
+- coordinate:
+  - 346
+  - 150
+  id: C1
+- coordinate:
+  - 352
+  - 208
+  id: C2
+- coordinate:
+  - 354
+  - 279
+  id: C3
+- coordinate:
+  - 363
+  - 354
+  id: C4
+- coordinate:
+  - 493
+  - 92
+  id: D0
+- coordinate:
+  - 505
+  - 141
+  id: D1
+- coordinate:
+  - 516
+  - 208
+  id: D2
+- coordinate:
+  - 531
+  - 278
+  id: D3
+- coordinate:
+  - 545
+  - 352
+  id: D4
