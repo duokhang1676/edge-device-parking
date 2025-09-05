@@ -416,6 +416,7 @@ def connect_sensor():
                 # ser.write(("4" + '\n').encode('utf-8'))
                 text = f" {str(direction[3])}-{str(direction[2])}    {str(direction[1])}-{str(direction[0])}   "
                 ser.write((text + '\n').encode('utf-8'))
+                time.sleep(2)
                 sum_slot = sum(slot_table)
                 text = str(slot_table[0])+","+str(slot_table[1])+","+str(slot_table[2])+","+str(slot_table[3])+","+str(sum_slot)
                 ser.write((text + '\n').encode('utf-8'))
