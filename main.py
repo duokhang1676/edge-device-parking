@@ -345,7 +345,6 @@ def tracking_car():
             #print("IDs:", track_ids_full)
             #print("Tất biển số xe đã vào:", license_ids_full)
             print("-------")
-            print("fps:", fps)
             print("license:", track_licenses)
             #print("ID hiện tại:",track_ids)
             #print("Tọa độ:",detected_boxes)
