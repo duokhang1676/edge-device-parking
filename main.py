@@ -681,24 +681,9 @@ import resources.license_plate_recognition.function.utils_rotate as utils_rotate
 
 def detect_license():
     # Load model YOLO tùy chỉnh để phát hiện biển số xe
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-    # Load model YOLO tùy chỉnh để nhận diện biển số xe
-    yolo_LP_detect = torch.load(
-        'resources/license_plate_recognition/model/LP_detector_nano_61.pt',
-        map_location=device
-    )
-    yolo_LP_detect.eval()
-
+    yolo_LP_detect = torch.hub.load('resources/license_plate_recognition/yolov5', 'custom', path='resources/license_plate_recognition/model/LP_detector_nano_61.pt', force_reload=True, source='local')#.to('cpu')
     # Load model YOLO tùy chỉnh để nhận diện chữ trên biển số xe
-    yolo_license_plate = torch.load(
-        'resources/license_plate_recognition/model/LP_ocr_nano_62.pt',
-        map_location=device
-    )
-    yolo_license_plate.eval()
-    # yolo_LP_detect = torch.hub.load('resources/license_plate_recognition/yolov5', 'custom', path='resources/license_plate_recognition/model/LP_detector_nano_61.pt', force_reload=True, source='local')#.to('cpu')
-    # # Load model YOLO tùy chỉnh để nhận diện chữ trên biển số xe
-    # yolo_license_plate = torch.hub.load('resources/license_plate_recognition/yolov5', 'custom', path='resources/license_plate_recognition/model/LP_ocr_nano_62.pt', force_reload=True, source='local')#.to('cpu')
+    yolo_license_plate = torch.hub.load('resources/license_plate_recognition/yolov5', 'custom', path='resources/license_plate_recognition/model/LP_ocr_nano_62.pt', force_reload=True, source='local')#.to('cpu')
     # Đặt ngưỡng độ tự tin (confidence threshold) để nhận diện biển số xe
     yolo_license_plate.conf = 0.60
     cap = cv2.VideoCapture(LICENSE_CAMERA_ID)
