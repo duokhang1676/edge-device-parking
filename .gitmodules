@@ -1,0 +1,3 @@
+[submodule "resources/license_plate_recognition/resources/license_plate_recognition/yolov5"]
+	path = resources/license_plate_recognition/resources/license_plate_recognition/yolov5
+	url = https://github.com/ultralytics/yolov5.git
