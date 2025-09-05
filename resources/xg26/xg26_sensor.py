@@ -123,7 +123,7 @@ async def connect_and_monitor():
 
             async with BleakClient(device, disconnected_callback=lambda c: print("Disconnected xg26 sensor device.")) as client:
                 print("Connected to xg26 sensor device.")
-                sound_file_path = "resources/xg26/ensor_connected.mp3"
+                sound_file_path = "resources/xg26/sensor_connected.mp3"
                 threading.Thread(target=play_sound, args=(sound_file_path,)).start()
                 globals.set_imu_data_init(None)  # Reset IMU initial data on new connection
                 # Enable notifications
