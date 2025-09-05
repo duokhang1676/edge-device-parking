@@ -44,22 +44,24 @@ wrong_slot = []
 qr_thread = True
 license_thread = True
 update_coordinate_arduino = False
+
+qr_first = True
 # Danh sách Dictionary các biển số xe đã được đăng ký
 # sài tạm
 registered_vehicles = [{
     "parking_id": parking_id,
-    "user_id": "01234",
-    "license_plate":  "30G-49344",
+    "user_id": "00",
+    "license_plate":  "30K-55055",
 },
 {
     "parking_id": parking_id,
-    "user_id": "01234",
-    "license_plate":  "30G-53507",
+    "user_id": "01",
+    "license_plate":  "30G-49344",
 },
 {    
     "parking_id": parking_id,
-    "user_id": "01234",
-    "license_plate":  "30K-55055",
+    "user_id": "01",
+    "license_plate":  "30G-53507",
 }
 ]
 
@@ -208,6 +210,7 @@ def tracking_car():
     frame_count = 0
     change_count = 0
     count = 0
+    fps = 0
     while True:
         if car_in or car_out:# nhường GPU cho detect_license
             time.sleep(1)
@@ -342,6 +345,7 @@ def tracking_car():
             #print("IDs:", track_ids_full)
             #print("Tất biển số xe đã vào:", license_ids_full)
             print("-------")
+            print("fps:", fps)
             print("license:", track_licenses)
             #print("ID hiện tại:",track_ids)
             #print("Tọa độ:",detected_boxes)
@@ -350,7 +354,7 @@ def tracking_car():
             #print("Số lần thay đổi vị trí đỗ xe: ", change_count)
             print("-------")
 
-        draw_points_and_ids(frame, coordinates_data, hidden_ids, track_ids, detected_boxes, track_licenses, fps, hidden_ids_map_track_licenses)
+        #draw_points_and_ids(frame, coordinates_data, hidden_ids, track_ids, detected_boxes, track_licenses, fps, hidden_ids_map_track_licenses)
        
         # Hiển thị
         # cv2.imshow("Tracking camera", frame)
@@ -392,7 +396,7 @@ def connect_sensor():
    # Thiết lập cổng Serial (kiểm tra cổng COM trong Device Manager)
     port = "/dev/ttyUSB0"  
     baudrate = 9600
-    global car_in, car_out, id_code_in, id_code_out, license_car_in, license_car_out, new_car, customer_type, parked_vehicles, parking_id, registered_vehicles, update_coordinate_arduino, direction, slot_table, qr_thread, license_thread, start_detect_qr, start_detect_license
+    global car_in, car_out, id_code_in, id_code_out, license_car_in, license_car_out, new_car, customer_type, parked_vehicles, parking_id, registered_vehicles, update_coordinate_arduino, direction, slot_table, qr_thread, license_thread, start_detect_qr, start_detect_license, qr_first
     # Thiết lập cổng Serial (kiểm tra cổng COM trong Device Manager)
     try:
         # Kết nối Serial
@@ -434,6 +438,7 @@ def connect_sensor():
                                 print("Xe vào bãi đỗ")
                                 ser.write(("1" + '\n').encode('utf-8'))
                                 threading.Thread(target=play_sound, args=('resources/mp3/xin-moi-vao.mp3',)).start()
+                                qr_first = False
                                 # Tạo mới parked_vehicle
                                 time_in = datetime.datetime.utcnow()+ datetime.timedelta(hours=7) 
                                 parked_vehicle = {
@@ -635,7 +640,7 @@ def connect_sensor():
 
 # Detect QR
 def detect_QR():
-    global car_in, car_out, id_code_in, id_code_out, customer_type, qr_thread, start_detect_qr
+    global car_in, car_out, id_code_in, id_code_out, customer_type, qr_thread, start_detect_qr, qr_first
     cap = cv2.VideoCapture(QR_CAMERA_ID)
     # Khởi tạo QRCodeDetector
     qr_decoder = cv2.QRCodeDetector()
@@ -655,7 +660,10 @@ def detect_QR():
                 #     break
                 print("detect QR")
                 qr_code, points, _ = qr_decoder.detectAndDecode(frame)
-                qr_code = "01234"
+                if qr_first:
+                    qr_code = "00"
+                else:
+                    qr_code = "01"
                 time.sleep(random.randint(3, 5))
                 if True:
                 # if points is not None:
