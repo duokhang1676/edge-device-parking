@@ -16,6 +16,8 @@ import os
 # KEEPING THINGS SIMPLE
 
 # varible
+start_detect_qr = False
+start_detect_license = False
 customer_type = ""
 new_car = ""
 car_in = False
@@ -386,7 +388,7 @@ def connect_sensor():
    # Thiết lập cổng Serial (kiểm tra cổng COM trong Device Manager)
     port = "/dev/ttyUSB0"  
     baudrate = 9600
-    global car_in, car_out, id_code_in, id_code_out, license_car_in, license_car_out, new_car, customer_type, parked_vehicles, parking_id, registered_vehicles, update_coordinate_arduino, direction, slot_table, qr_thread, license_thread
+    global car_in, car_out, id_code_in, id_code_out, license_car_in, license_car_out, new_car, customer_type, parked_vehicles, parking_id, registered_vehicles, update_coordinate_arduino, direction, slot_table, qr_thread, license_thread, start_detect_qr, start_detect_license
     # Thiết lập cổng Serial (kiểm tra cổng COM trong Device Manager)
     try:
         # Kết nối Serial
@@ -569,10 +571,10 @@ def connect_sensor():
                                 car_in = True
                                 #if license_thread:
                                 #license_thread = False
-                                threading.Thread(target=detect_license).start()
+                                start_detect_license = True
                                 if qr_thread:
                                     qr_thread = False
-                                    threading.Thread(target=detect_QR).start()
+                                    start_detect_qr = True
                             else:
                                 car_in = False
                                 id_code_in = ""
@@ -585,10 +587,10 @@ def connect_sensor():
                                 car_out = True  
                                 if license_thread:
                                     license_thread = False
-                                    threading.Thread(target=detect_license).start()
+                                    start_detect_license = True
                                 if qr_thread:
                                     qr_thread = False
-                                    threading.Thread(target=detect_QR).start()
+                                    start_detect_qr = True
                             else:
                                 car_out = False
                                 id_code_out = ""
@@ -628,43 +630,47 @@ def connect_sensor():
 
 # Detect QR
 def detect_QR():
-    global car_in, car_out, id_code_in, id_code_out, customer_type, qr_thread
+    global car_in, car_out, id_code_in, id_code_out, customer_type, qr_thread, start_detect_qr
     cap = cv2.VideoCapture(QR_CAMERA_ID)
     # Khởi tạo QRCodeDetector
     qr_decoder = cv2.QRCodeDetector()
     while True:
-        #time.sleep(0.1)
-        # Nếu xe vào hoặc ra và chưa có mã QR
-        if (car_in and id_code_in == "") or (car_out and id_code_out == ""):
-            ret, frame = cap.read()
-            if frame is None:
-                print("Camera QR lỗi!")
-                continue
-            # Giải mã mã QR
-            # cv2.imshow("Detect QR Camera",frame)
-            # if cv2.waitKey(1) == ord('q'):
-            #     break
-            print("detect QR")
-            qr_code, points, _ = qr_decoder.detectAndDecode(frame)
-            if points is not None:
-                if qr_code:
-                    print("detected qr")
-                    if car_in:
-                        id_code_in = qr_code
-                        customer_type = "customer"
-                    else:
-                        id_code_out = qr_code
-                    print(qr_code)
-                    threading.Thread(target=play_sound, args=(mp3_url+'scan.mp3',)).start()
-                    # cv2.destroyWindow("Detect QR Camera")
-                    cap.release()
-                    qr_thread = True
-                    break
+        if not start_detect_qr:
+            time.sleep(1)
         else:
-            # cv2.destroyWindow("Detect QR Camera")
-            cap.release()
-            qr_thread = True
-            break
+            # Nếu xe vào hoặc ra và chưa có mã QR
+            if (car_in and id_code_in == "") or (car_out and id_code_out == ""):
+                ret, frame = cap.read()
+                if frame is None:
+                    print("Camera QR lỗi!")
+                    continue
+                # Giải mã mã QR
+                # cv2.imshow("Detect QR Camera",frame)
+                # if cv2.waitKey(1) == ord('q'):
+                #     break
+                print("detect QR")
+                qr_code, points, _ = qr_decoder.detectAndDecode(frame)
+                if points is not None:
+                    if qr_code:
+                        print("detected qr")
+                        if car_in:
+                            id_code_in = qr_code
+                            customer_type = "customer"
+                        else:
+                            id_code_out = qr_code
+                        print(qr_code)
+                        threading.Thread(target=play_sound, args=(mp3_url+'scan.mp3',)).start()
+                        # cv2.destroyWindow("Detect QR Camera")
+                        # cap.release()
+                        qr_thread = True
+                        start_detect_qr = False
+                        # break
+            else:
+                # cv2.destroyWindow("Detect QR Camera")
+                # cap.release()
+                qr_thread = True
+                start_detect_qr = False
+                # break
 
     
     
@@ -680,67 +686,69 @@ def detect_license():
     # Đặt ngưỡng độ tự tin (confidence threshold) để nhận diện biển số xe
     yolo_license_plate.conf = 0.60
     cap = cv2.VideoCapture(LICENSE_CAMERA_ID)
-    global car_in, car_out, license_car_in, license_car_out, license_thread
+    global car_in, car_out, license_car_in, license_car_out, license_thread, start_detect_license
     lp_temp = ""
     delay = 0
     while(True):
-        #time.sleep(0.1)
-        # Nếu xe vào hoặc ra và chưa có biển số
-        if (car_in and license_car_in == "") or (car_out and license_car_out == ""):
-            ret, frame = cap.read()
-            if frame is None:
-                print("license frame is none!")
-                continue
-            print("detect license")
-            # cv2.imshow("Detect License Camera", frame)
-            # if cv2.waitKey(1) == ord('q'):
-            #     break
-            # Sử dụng mô hình YOLO để phát hiện biển số xe trong khung hình
-            plates = yolo_LP_detect(frame, size=640)
-            # Lấy danh sách các biển số xe được phát hiện (tọa độ bounding box)
-            list_plates = plates.pandas().xyxy[0].values.tolist()
-            # Tạo một tập hợp để lưu các biển số xe đã đọc
-            list_read_plates = []
-            # Lặp qua tất cả các biển số xe được phát hiện
-            for plate in list_plates:
-                x = int(plate[0]) # Lấy tọa độ xmin của bounding box
-                y = int(plate[1]) # Lấy tọa độ ymin của bounding box
-                w = int(plate[2] - plate[0]) # Tính toán chiều rộng của bounding box
-                h = int(plate[3] - plate[1]) # Tính toán chiều cao của bounding box
-                # Cắt hình ảnh của biển số xe từ khung hình
-                crop_img = frame[y:y+h, x:x+w]
-                lp = helper.read_plate(yolo_license_plate, utils_rotate.deskew(crop_img, 0, 0))
-                # Nếu biển số được nhận diện không phải "unknown"
-                if lp != "unknown":
-                    # Thêm biển số đã nhận diện vào danh sách
-                    list_read_plates.append(lp)
-            # Xác nhận biển số xe có chính xác không bằng cách kiểm tra giá trị trong 3 lần detect có giống nhau không
-            if len(list_read_plates) == 1: # chỉ lấy 1 biển số xe, trường hợp có nhiều hơn 1 biến số xe hoặc không có cái nào thì bỏ qua
-                if list_read_plates[0] == lp_temp:
-                    delay += 1
-                else:
-                    delay = 0
-                    lp_temp = list_read_plates[0]
-                if delay >= 3:
-                    delay = 0
-                    # Nếu xe vào
-                    if car_in:
-                        license_car_in = lp_temp
-                    # Nếu xe ra
-                    else:
-                        license_car_out = lp_temp
-                    print(lp_temp)
-                    threading.Thread(target=play_sound, args=('resources/mp3/scan.mp3',)).start()
-                    # cv2.destroyWindow("Detect License Camera")
-                    cap.release()
-                    license_thread = True
-                    break
+        if not start_detect_license:
+            time.sleep(1)
         else:
-            # cv2.destroyWindow("Detect License Camera")
-            cap.release()
-            license_thread = True
-            break
-    
+            # Nếu xe vào hoặc ra và chưa có biển số
+            if (car_in and license_car_in == "") or (car_out and license_car_out == ""):
+                ret, frame = cap.read()
+                if frame is None:
+                    print("license frame is none!")
+                    continue
+                print("detect license")
+                # cv2.imshow("Detect License Camera", frame)
+                # if cv2.waitKey(1) == ord('q'):
+                #     break
+                # Sử dụng mô hình YOLO để phát hiện biển số xe trong khung hình
+                plates = yolo_LP_detect(frame, size=640)
+                # Lấy danh sách các biển số xe được phát hiện (tọa độ bounding box)
+                list_plates = plates.pandas().xyxy[0].values.tolist()
+                # Tạo một tập hợp để lưu các biển số xe đã đọc
+                list_read_plates = []
+                # Lặp qua tất cả các biển số xe được phát hiện
+                for plate in list_plates:
+                    x = int(plate[0]) # Lấy tọa độ xmin của bounding box
+                    y = int(plate[1]) # Lấy tọa độ ymin của bounding box
+                    w = int(plate[2] - plate[0]) # Tính toán chiều rộng của bounding box
+                    h = int(plate[3] - plate[1]) # Tính toán chiều cao của bounding box
+                    # Cắt hình ảnh của biển số xe từ khung hình
+                    crop_img = frame[y:y+h, x:x+w]
+                    lp = helper.read_plate(yolo_license_plate, utils_rotate.deskew(crop_img, 0, 0))
+                    # Nếu biển số được nhận diện không phải "unknown"
+                    if lp != "unknown":
+                        # Thêm biển số đã nhận diện vào danh sách
+                        list_read_plates.append(lp)
+                # Xác nhận biển số xe có chính xác không bằng cách kiểm tra giá trị trong 3 lần detect có giống nhau không
+                if len(list_read_plates) == 1: # chỉ lấy 1 biển số xe, trường hợp có nhiều hơn 1 biến số xe hoặc không có cái nào thì bỏ qua
+                    if list_read_plates[0] == lp_temp:
+                        delay += 1
+                    else:
+                        delay = 0
+                        lp_temp = list_read_plates[0]
+                    if delay >= 3:
+                        delay = 0
+                        # Nếu xe vào
+                        if car_in:
+                            license_car_in = lp_temp
+                        # Nếu xe ra
+                        else:
+                            license_car_out = lp_temp
+                        print(lp_temp)
+                        threading.Thread(target=play_sound, args=('resources/mp3/scan.mp3',)).start()
+                        # cv2.destroyWindow("Detect License Camera")
+                        # cap.release()
+                        license_thread = True
+                        start_detect_license = False
+            else:
+                # cv2.destroyWindow("Detect License Camera")
+                # cap.release()
+                license_thread = True
+                start_detect_license = False
+        
 def speech_text(text):
     # Tạo tts
     tts = gTTS(text=text, lang='vi', slow=False)
@@ -755,22 +763,24 @@ def play_sound(path):
 
 def main():
     # Tạo luồng
-    thread1 = threading.Thread(target=tracking_car)
+    threading.Thread(target=play_sound, args=('resources/mp3/start-program.mp3',)).start()
+
+    # thread1 = threading.Thread(target=tracking_car)
     thread2 = threading.Thread(target=connect_sensor)
-    #thread3 = threading.Thread(target=detect_QR)
-    #thread4 = threading.Thread(target=detect_license)
+    thread3 = threading.Thread(target=detect_QR)
+    thread4 = threading.Thread(target=detect_license)
 
     # Bắt đầu luồng
-    thread1.start()
+    # thread1.start()
     thread2.start()
-    #thread3.start()
-    #thread4.start()
+    thread3.start()
+    thread4.start()
 
     # Chờ tất cả luồng kết thúc
-    thread1.join()
+    # thread1.join()
     thread2.join()
-    #thread3.join()
-    #thread4.start()
+    thread3.join()
+    thread4.start()
     
 if __name__ == "__main__":
     main()
