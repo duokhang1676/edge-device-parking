@@ -394,6 +394,7 @@ def connect_sensor():
         # Kết nối Serial
         ser = serial.Serial(port, baudrate, timeout=1)
         print(f"Kết nối thành công với {port}")
+        threading.Thread(target=play_sound, args=('resources/mp3/arduino_connection.mp3',)).start()
         # API arduino
         # 0: barie_in:0 (đóng barie vào)
         # 1: barie_in:1 (mở barie vào)
@@ -680,9 +681,24 @@ import resources.license_plate_recognition.function.utils_rotate as utils_rotate
 
 def detect_license():
     # Load model YOLO tùy chỉnh để phát hiện biển số xe
-    yolo_LP_detect = torch.hub.load('resources/license_plate_recognition/yolov5', 'custom', path='resources/license_plate_recognition/model/LP_detector_nano_61.pt', force_reload=True, source='local')#.to('cpu')
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    # Load model YOLO tùy chỉnh để nhận diện biển số xe
+    yolo_LP_detect = torch.load(
+        'resources/license_plate_recognition/model/LP_detector_nano_61.pt',
+        map_location=device
+    )
+    yolo_LP_detect.eval()
+
     # Load model YOLO tùy chỉnh để nhận diện chữ trên biển số xe
-    yolo_license_plate = torch.hub.load('resources/license_plate_recognition/yolov5', 'custom', path='resources/license_plate_recognition/model/LP_ocr_nano_62.pt', force_reload=True, source='local')#.to('cpu')
+    yolo_license_plate = torch.load(
+        'resources/license_plate_recognition/model/LP_ocr_nano_62.pt',
+        map_location=device
+    )
+    yolo_license_plate.eval()
+    # yolo_LP_detect = torch.hub.load('resources/license_plate_recognition/yolov5', 'custom', path='resources/license_plate_recognition/model/LP_detector_nano_61.pt', force_reload=True, source='local')#.to('cpu')
+    # # Load model YOLO tùy chỉnh để nhận diện chữ trên biển số xe
+    # yolo_license_plate = torch.hub.load('resources/license_plate_recognition/yolov5', 'custom', path='resources/license_plate_recognition/model/LP_ocr_nano_62.pt', force_reload=True, source='local')#.to('cpu')
     # Đặt ngưỡng độ tự tin (confidence threshold) để nhận diện biển số xe
     yolo_license_plate.conf = 0.60
     cap = cv2.VideoCapture(LICENSE_CAMERA_ID)
