@@ -777,7 +777,7 @@ def send_env():
                 'parking_id': parking_id,
                 'temperature': globals.get_temperature(),
                 'humidity': globals.get_humidity(),
-                'light': globals.get_light()   
+                'light': int(globals.get_light() / 50)  
             }
             print("update env")
             update_environment(data)
