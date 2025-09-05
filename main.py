@@ -64,7 +64,7 @@ registered_vehicles = [{
 CLOUD_NAME = "dcs6zqppp"
 UPLOAD_PRESET = "parking-data"
 
-TRACKING_CAMERA_ID = "/dev/video0"
+TRACKING_CAMERA_ID = 0
 QR_CAMERA_ID = "/dev/video1"
 LICENSE_CAMERA_ID = "/dev/video2"
 #
