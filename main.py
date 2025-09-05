@@ -772,14 +772,15 @@ def play_sound(path):
 def send_env():
     global parking_id
     while True:
-        data = {
-            'parking_id': parking_id,
-            'temperature': globals.get_temperature(),
-            'humidity': globals.get_humidity(),
-            'light': globals.get_light()   
-        }
-        print("update env")
-        update_environment(data)
+        if globals.get_humidity() is not None:
+            data = {
+                'parking_id': parking_id,
+                'temperature': globals.get_temperature(),
+                'humidity': globals.get_humidity(),
+                'light': globals.get_light()   
+            }
+            print("update env")
+            update_environment(data)
         time.sleep(5)
 
 def main():
