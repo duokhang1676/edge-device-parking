@@ -227,7 +227,6 @@ def tracking_car():
 #
         # Danh sách các tọa độ và id của xe đã track được
         detected_boxes, track_ids = tracking_objects(tracker, model, frame, confidence_threshold = 0.6, device=device)
-        print(track_ids)
 # xe đi vào
         if len(track_ids) != 0:
             # Phát hiện xe mới vào
@@ -335,17 +334,17 @@ def tracking_car():
 
 # trực quan
     ##########
-        # if count % 200 == 0:
-        #     #print("IDs:", track_ids_full)
-        #     #print("Tất biển số xe đã vào:", license_ids_full)
-        #     print("-------")
-        #     print("license:", track_licenses)
-        #     #print("ID hiện tại:",track_ids)
-        #     #print("Tọa độ:",detected_boxes)
-        #     print("Các vị trí đã có xe đỗ: ", hidden_ids)
-        #     print("Các xe đã đỗ tương ứng: ", hidden_ids_map_track_licenses)
-        #     #print("Số lần thay đổi vị trí đỗ xe: ", change_count)
-        #     print("-------")
+        if count % 200 == 0:
+            #print("IDs:", track_ids_full)
+            #print("Tất biển số xe đã vào:", license_ids_full)
+            print("-------")
+            print("license:", track_licenses)
+            #print("ID hiện tại:",track_ids)
+            #print("Tọa độ:",detected_boxes)
+            print("Các vị trí đã có xe đỗ: ", hidden_ids)
+            print("Các xe đã đỗ tương ứng: ", hidden_ids_map_track_licenses)
+            #print("Số lần thay đổi vị trí đỗ xe: ", change_count)
+            print("-------")
 
         draw_points_and_ids(frame, coordinates_data, hidden_ids, track_ids, detected_boxes, track_licenses, fps, hidden_ids_map_track_licenses)
        
@@ -407,7 +406,7 @@ def connect_sensor():
             if update_coordinate_arduino:
                 print("Cập nhật direction")
                 update_coordinate_arduino = False
-                ser.write(("4" + '\n').encode('utf-8'))
+                # ser.write(("4" + '\n').encode('utf-8'))
                 text = f" {str(direction[3])}-{str(direction[2])}    {str(direction[1])}-{str(direction[0])}   "
                 ser.write((text + '\n').encode('utf-8'))
                 sum_slot = sum(slot_table)
