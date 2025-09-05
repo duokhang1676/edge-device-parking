@@ -64,7 +64,7 @@ registered_vehicles = [{
 CLOUD_NAME = "dcs6zqppp"
 UPLOAD_PRESET = "parking-data"
 
-TRACKING_CAMERA_ID = 0
+TRACKING_CAMERA_ID = 1
 QR_CAMERA_ID = "/dev/video1"
 LICENSE_CAMERA_ID = "/dev/video2"
 #
@@ -145,7 +145,7 @@ def tracking_car():
             "video/x-raw, format=BGR ! appsink"
         )
     cap = cv2.VideoCapture(gst_pipeline, cv2.CAP_GSTREAMER)
-    time.sleep(1)
+    time.sleep(5)
     ret, frame = cap.read()
 
     # Load camera image to cloudserver
