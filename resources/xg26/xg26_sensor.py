@@ -42,7 +42,7 @@ windows_length = 5
 windows = deque([0] * windows_length, maxlen=windows_length)
 pre_x, pre_y, pre_z = (0,0,0)
 # sound_file_path_lean = os.path.abspath(os.path.join(__file__, "../../..", "app/static/sounds/imu_alert.mp3"))
-sound_file_path_shake = "dong-dat.mp3"
+sound_file_path_shake = "resources/xg26/dong-dat.mp3"
 
 import vlc
 def play_sound(path):
@@ -123,7 +123,7 @@ async def connect_and_monitor():
 
             async with BleakClient(device, disconnected_callback=lambda c: print("Disconnected xg26 sensor device.")) as client:
                 print("Connected to xg26 sensor device.")
-                sound_file_path = "ensor_connected.mp3"
+                sound_file_path = "resources/xg26/ensor_connected.mp3"
                 threading.Thread(target=play_sound, args=(sound_file_path,)).start()
                 globals.set_imu_data_init(None)  # Reset IMU initial data on new connection
                 # Enable notifications
