@@ -651,7 +651,9 @@ def detect_QR():
                 # if cv2.waitKey(1) == ord('q'):
                 #     break
                 print("detect QR")
-                qr_code, points, _ = qr_decoder.detectAndDecode(frame)
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                frame_resized = cv2.resize(gray, (640, 640))
+                qr_code, points, _ = qr_decoder.detectAndDecode(frame_resized)
                 if points is not None:
                     if qr_code:
                         print("detected qr")
