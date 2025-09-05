@@ -212,6 +212,7 @@ def tracking_car():
         count += 1
         ret, frame = cap.read()
         if not ret:
+            print("Detect car frame is none!")
             continue
 
 # tính fps
@@ -223,7 +224,7 @@ def tracking_car():
         if elapsed_time > 0:
             fps = int(frame_count / elapsed_time)
 #
-
+        print("đang tracking car")
         # Danh sách các tọa độ và id của xe đã track được
         detected_boxes, track_ids = tracking_objects(tracker, model, frame, confidence_threshold = 0.6, device=device)
         print(track_ids)
@@ -768,19 +769,19 @@ def main():
     # Tạo luồng
     threading.Thread(target=play_sound, args=('resources/mp3/start-program.mp3',)).start()
 
-    # thread1 = threading.Thread(target=tracking_car)
+    thread1 = threading.Thread(target=tracking_car)
     thread2 = threading.Thread(target=connect_sensor)
     thread3 = threading.Thread(target=detect_QR)
     thread4 = threading.Thread(target=detect_license)
 
     # Bắt đầu luồng
-    # thread1.start()
+    thread1.start()
     thread2.start()
     thread3.start()
     thread4.start()
 
     # Chờ tất cả luồng kết thúc
-    # thread1.join()
+    thread1.join()
     thread2.join()
     thread3.join()
     thread4.start()
