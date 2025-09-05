@@ -161,6 +161,7 @@ def tracking_car():
         if response.status_code == 200:
             print("Đã tải hình ảnh lên Cloudinary")
             image_url = response.json()["secure_url"]
+            print(image_url)
             cam = get_coordinates(parking_id, str(TRACKING_CAMERA_ID))
             if cam is not None:
                 cam['image_url'] = image_url
@@ -224,7 +225,6 @@ def tracking_car():
         if elapsed_time > 0:
             fps = int(frame_count / elapsed_time)
 #
-        print("đang tracking car")
         # Danh sách các tọa độ và id của xe đã track được
         detected_boxes, track_ids = tracking_objects(tracker, model, frame, confidence_threshold = 0.6, device=device)
         print(track_ids)
