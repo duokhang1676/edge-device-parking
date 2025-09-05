@@ -12,7 +12,9 @@ from app.utils import *
 import requests
 import json
 import os
-
+import random 
+import globals
+from resources.xg26.xg26_sensor import start_xg26_sensor
 # KEEPING THINGS SIMPLE
 
 # varible
@@ -95,6 +97,8 @@ def insert_parked_vehicle(data):
 def remove_parked_vehicle(data):
     url = f'{ClOUD_SERVER_URL+"parked_vehicles/"}remove_vehicle'
     response = requests.delete(url, json=data)
+    if response != 200:
+        print(response)
     return response.status_code == 200
 
 
@@ -130,7 +134,7 @@ def tracking_car():
     coordinates_data = read_yaml("resources/coordinates/data/coordinates_"+str(0)+'.yml')
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Đang chạy trên: {device}")
-    model = YOLO("resources/models/yolov8n-416.engine")
+    model = YOLO("resources/models/detect-car-yolov8n-v2.engine")
     # model = YOLO("resources/models/detect-car-yolov8n-v2.pt")
     # Set log level to ERROR
     model.overrides['verbose'] = False
@@ -138,7 +142,7 @@ def tracking_car():
     #cap = cv2.VideoCapture("test_data/video/4.mp4")
     gst_pipeline = (
             "nvarguscamerasrc ! "
-            "video/x-raw(memory:NVMM), width=416, height=416, framerate=30/1 ! "
+            "video/x-raw(memory:NVMM), width=640, height=640, framerate=30/1 ! "
             "nvvidconv ! "
             "video/x-raw, format=BGRx ! "
             "videoconvert ! "
@@ -604,15 +608,15 @@ def connect_sensor():
                         #     customer_type = "guest"
                         #     id_code_in = value
 
-                        elif key == "env":
-                            env = json.loads(value)
-                            data = {
-                                'parking_id': parking_id,
-                                'temperature': env[0],
-                                'humidity': env[1],
-                                'light': env[2]   
-                            }
-                            update_environment(data)
+                        # elif key == "env":
+                        #     env = json.loads(value)
+                        #     data = {
+                        #         'parking_id': parking_id,
+                        #         'temperature': env[0],
+                        #         'humidity': env[1],
+                        #         'light': env[2]   
+                        #     }
+                        #     update_environment(data)
 
             # Xe đi vào
             
@@ -652,6 +656,7 @@ def detect_QR():
                 print("detect QR")
                 qr_code, points, _ = qr_decoder.detectAndDecode(frame)
                 qr_code = "01234"
+                time.sleep(random.randint(3, 5))
                 if True:
                 # if points is not None:
                     if qr_code:
@@ -732,7 +737,7 @@ def detect_license():
                     else:
                         delay = 0
                         lp_temp = list_read_plates[0]
-                    if delay >= 3:
+                    if delay >= 5:
                         delay = 0
                         # Nếu xe vào
                         if car_in:
@@ -764,6 +769,19 @@ def play_sound(path):
     player = vlc.MediaPlayer(path)
     player.play()
 
+def send_env():
+    global parking_id
+    while True:
+        data = {
+            'parking_id': parking_id,
+            'temperature': globals.get_temperature(),
+            'humidity': globals.get_humidity(),
+            'light': globals.get_light()   
+        }
+        print("update env")
+        update_environment(data)
+        time.sleep(5)
+
 def main():
     # Tạo luồng
     threading.Thread(target=play_sound, args=('resources/mp3/start-program.mp3',)).start()
@@ -772,18 +790,24 @@ def main():
     thread2 = threading.Thread(target=connect_sensor)
     thread3 = threading.Thread(target=detect_QR)
     thread4 = threading.Thread(target=detect_license)
+    thread5 = threading.Thread(target=start_xg26_sensor)
+    thread6 = threading.Thread(target=send_env)
 
     # Bắt đầu luồng
     thread1.start()
     thread2.start()
     thread3.start()
     thread4.start()
+    thread5.start()
+    thread6.start()
 
     # Chờ tất cả luồng kết thúc
     thread1.join()
     thread2.join()
     thread3.join()
-    thread4.start()
+    thread4.join()
+    thread5.join()
+    thread6.join()
     
 if __name__ == "__main__":
     main()
