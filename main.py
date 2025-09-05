@@ -641,7 +641,8 @@ def detect_QR():
         else:
             # Nếu xe vào hoặc ra và chưa có mã QR
             if (car_in and id_code_in == "") or (car_out and id_code_out == ""):
-                ret, frame = cap.read()
+                # ret, frame = cap.read()
+                frame = cv2.imread("resources/img/qr.jpg")
                 if frame is None:
                     print("Camera QR lỗi!")
                     continue
